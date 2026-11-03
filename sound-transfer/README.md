@@ -1,6 +1,8 @@
-# Sound Library recovery tools (unreleased, based on v63)
+# Sound Library backup — v64 development
 
-These tools transfer uploaded sounds from the original local v59 game to v63 without changing the live website. They were prepared on `dev/sound-library-backup`; no version 64 or release is created. There are no scoring, steal, animation, or sound-playback rule changes.
+Version 64 permanently embeds Export Sound Library and Import Sound Library controls inside the existing Sound Library, using the tested implementation from commit `f93e8ed` unchanged. The proposed update is on `dev/version-64`; it has not been merged, deployed, or released. Open Setup Options → Sound Library to use the permanent controls without any helper or console installation. There are no scoring, steal, animation, sound-playback rule, database-name or database-schema changes.
+
+The recovery helpers below remain available for transferring sounds from the original local v59 game into an existing v63 tab before an approved v64 deployment.
 
 ## Use the original v59 tab, not a newly downloaded replacement
 

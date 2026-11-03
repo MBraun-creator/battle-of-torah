@@ -63,6 +63,10 @@ async function openSoundLibrary(p){await p.evaluate(()=>$('setup').style.display
   await openSoundLibrary(dst);assert.equal(await count(dst),2);
  });
  const existing=await rows(dst);
+ await check('Permanent v64 buttons are visible and Import opens the backup file chooser',async()=>{
+  assert.equal(await dst.evaluate(()=>GAME_VERSION),64);assert.equal(await dst.locator('#export-sound-library').isVisible(),true);assert.equal(await dst.locator('#import-sound-library').isVisible(),true);
+  const chosen=dst.waitForEvent('filechooser');await dst.click('#import-sound-library');const chooser=await chosen;await chooser.setFiles({name:'backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});await dst.waitForFunction(()=>!document.getElementById('import-sound-library').disabled);assert.equal(await dst.locator('#sound-import-review').isVisible(),true);assert.deepEqual(await rows(dst),existing);await dst.click('#sound-import-cancel');
+ });
  await check('Validation and Cancel perform no writes',async()=>{
   await importJSON(dst,backup);assert.equal(await dst.locator('#sound-import-review').isVisible(),true);assert.match(await dst.locator('#sound-import-summary').textContent(),/Add 8 sounds/);assert.deepEqual(await rows(dst),existing);await dst.click('#sound-import-cancel');assert.deepEqual(await rows(dst),existing);
  });
@@ -110,8 +114,8 @@ async function openSoundLibrary(p){await p.evaluate(()=>$('setup').style.display
  await check('An empty newly opened game refuses legacy export and tells the user to find the original context',async()=>{
   const other=await load(sourceContext,await serve(legacy));await other.addScriptTag({content:fs.readFileSync(path.join(helpers,'install-original-sound-exporter.js'),'utf8')});await other.click('#verify-sound-library');await other.waitForFunction(()=>document.getElementById('sound-transfer-status').textContent.startsWith('No stored sounds'));await other.click('#export-sound-library');await other.waitForFunction(()=>document.getElementById('sound-transfer-status').textContent.startsWith('Export stopped'));assert.equal(await other.locator('#sound-backup-download').isVisible(),false);assert.equal(await count(other),0);await other.close();
  });
- await check('Original v63 game code is unchanged apart from the added backup module',async()=>{
-  const now=fs.readFileSync(path.join(root,'index.html'),'utf8');const begin='<!-- BEGIN SOUND LIBRARY TRANSFER -->',end='<!-- END SOUND LIBRARY TRANSFER -->\n';const a=now.indexOf(begin),b=now.indexOf(end,a)+end.length;assert.equal(now.slice(0,a)+now.slice(b),require('node:child_process').execFileSync('git',['show','266dcd8:index.html'],{cwd:root,encoding:'utf8'}));
+ await check('v64 preserves v63 game code except version metadata and the backup module',async()=>{
+  const now=fs.readFileSync(path.join(root,'index.html'),'utf8');const begin='<!-- BEGIN SOUND LIBRARY TRANSFER -->',end='<!-- END SOUND LIBRARY TRANSFER -->\n';const a=now.indexOf(begin),b=now.indexOf(end,a)+end.length;assert.equal(now.slice(0,a)+now.slice(b),require('node:child_process').execFileSync('git',['show','266dcd8:index.html'],{cwd:root,encoding:'utf8'}).replace('const GAME_VERSION=63;','const GAME_VERSION=64;'));assert.equal(require('node:child_process').execFileSync('git',['show','f93e8ed:tools/sound-library-transfer.js'],{cwd:root,encoding:'utf8'}),fs.readFileSync(path.join(root,'tools/sound-library-transfer.js'),'utf8'));
  });
  await check('2, 3 and 4 team starts, roster import, skip, end and restart still work',async()=>{
   for(const n of [2,3,4]){
