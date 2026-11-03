@@ -441,3 +441,7 @@ Once the teacher approves the plan, implement changes incrementally, test them, 
 ---
 
 **End of Master Development Guide**
+
+## Permanent preview reference
+
+The separately hosted development preview is documented in `preview/README.md`; its exact Site identity is in `preview/site.json`. Reuse that preview hostname/project for manual development-branch updates. Preview approval never authorizes merging or deploying the live GitHub Pages game. Never point preview hosting at the live hostname, put it in a folder under the live origin, change the live Pages configuration, or migrate/clear live browser storage. Keep the separate Sites hosting manifest in the preview checkout, not this GitHub game checkout.
