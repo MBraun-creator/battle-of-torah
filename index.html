@@ -226,7 +226,7 @@ button.utility{background:linear-gradient(#594631,#211c19);color:#fbe9bd;border:
 
 <div id="live-team-editor" class="game-dialog" role="dialog" aria-modal="true" aria-label="Edit team names and icons"><div class="game-dialog-box" style="max-height:92dvh;overflow:auto"><h2>🏷 EDIT TEAMS</h2><p>Changes apply immediately without resetting scores.</p><div id="live-team-fields" style="display:grid;gap:12px;text-align:left"></div><div class="game-dialog-actions"><button type="button" id="live-team-save">✓ SAVE CHANGES</button><button type="button" id="live-team-cancel">CANCEL</button></div></div></div>
 <div id="live-player-editor" class="game-dialog" role="dialog" aria-modal="true" aria-label="Manage players"><div class="game-dialog-box" style="max-width:760px;max-height:92dvh;overflow:auto"><h2>👥 MANAGE PLAYERS</h2><p>Remove individual students from the imported roster. This cannot be undone.</p><div id="live-player-list" style="display:grid;gap:8px;text-align:left;max-height:55dvh;overflow:auto"></div><div class="game-dialog-actions"><button type="button" id="live-player-close">DONE</button></div></div></div>
-<div id="settings-menu" class="game-dialog" role="dialog" aria-modal="true" aria-label="Setup options"><div class="game-dialog-box settings-menu-box"><h2>⚙ SETUP OPTIONS</h2><p>Choose what you want to configure.</p><div class="settings-menu-actions"><button type="button" id="questionsetup">📝 Questions Setup</button><button type="button" id="import">🏰 Castle Images</button><button type="button" id="soundlibrary">🎵 Sound Library</button><button type="button" id="edit-teams-live">🏷 Edit Team Names & Icons</button><button type="button" id="manage-players-live">👥 Manage Players</button></div><button type="button" id="settings-menu-close">✕ CLOSE</button></div></div>
+<div id="settings-menu" class="game-dialog" role="dialog" aria-modal="true" aria-label="Setup options"><div class="game-dialog-box settings-menu-box"><h2>⚙ SETUP OPTIONS</h2><p>Choose what you want to configure.</p><div style="padding:12px;border:2px solid #a88b50;border-radius:10px;margin:10px 0;text-align:left;background:#17212d"><label for="steal-limit-setting" style="display:block;font-weight:bold;color:#ffe09b;margin-bottom:7px">🚨 Steal attempts per question</label><select id="steal-limit-setting" style="width:100%;padding:10px;font-size:17px;background:#f5e4c3;color:#211b15;border-radius:6px"><option value="1">1 steal (original)</option><option value="3">Up to 3 steals — one attempt per opposing team</option></select><p style="font-size:12px;margin:6px 0 0">If everyone misses, reveal the correct answer. Two-team games allow only one steal.</p></div><div class="settings-menu-actions"><button type="button" id="questionsetup">📝 Questions Setup</button><button type="button" id="import">🏰 Castle Images</button><button type="button" id="soundlibrary">🎵 Sound Library</button><button type="button" id="edit-teams-live">🏷 Edit Team Names & Icons</button><button type="button" id="manage-players-live">👥 Manage Players</button></div><button type="button" id="settings-menu-close">✕ CLOSE</button></div></div>
 
 <div id="power-change-dialog" class="game-dialog" role="dialog" aria-modal="true" aria-label="Power increase announcement"><div class="game-dialog-box"><h2 class="power-change-title">⚔ POWER UP! ⚔</h2><p>We've reached the <strong>FINAL THIRD</strong> of the game!</p><p>All teams now have stronger actions:</p><div class="power-change-values"><div class="power-change-value">⚔ ATTACK<strong>−20 HP</strong><span>to each opponent</span></div><div class="power-change-value">🔨 REPAIR<strong>+10 HP</strong><span>to your castle</span></div></div><p>🛡 Shield still protects for 2 turns.</p><button type="button" id="power-change-continue">CONTINUE THE BATTLE →</button></div></div>
 <div id="hp-adjust-dialog" class="game-dialog" role="dialog" aria-modal="true" aria-label="Adjust team HP"><div class="game-dialog-box"><h2>⚖ ADJUST TEAM HP</h2><p>Correct a scoring mistake (0–200 HP).</p><div class="game-dialog-actions" id="hp-adjust-rows" style="display:flex;flex-direction:column;gap:12px"></div><button type="button" id="hp-adjust-close">DONE</button></div></div><div id="penalty-dialog" class="game-dialog" role="dialog" aria-modal="true" aria-label="Five HP penalty"><div class="game-dialog-box"><h2>⚠ −5 HP PENALTY</h2><p>Choose the team to penalize.</p><div class="game-dialog-actions" id="penalty-teams"></div><button type="button" id="penalty-cancel">CANCEL</button></div></div>
@@ -318,7 +318,10 @@ function gameConfirm(message){
 const ICON_CHOICES=[['castle','🏰 Colored Castle'],['🦁','🦁 Lion'],['🐆','🐆 Leopard'],['🦅','🦅 Eagle'],['🦌','🦌 Stag'],['🐉','🐉 Dragon'],['🛡️','🛡️ Shield'],['⚔️','⚔️ Swords'],['👑','👑 Crown'],['⭐','⭐ Star'],['🔥','🔥 Fire'],['💎','💎 Diamond'],['🚀','🚀 Rocket'],['🐺','🐺 Wolf'],['🐻','🐻 Bear'],['🦊','🦊 Fox']];
 const defaultIcons=['castle','castle','castle','castle'];
 const colors=['#5897e7','#d64d45','#e4b64f','#4ab774'];
-let playerPickKey=null;let playerSelectionMode='random';try{const saved=localStorage.getItem('bt_player_mode');if(['random','after','before'].includes(saved))playerSelectionMode=saved}catch{}let playerPickTimeout=null;function clearPlayerPickTimeout(){if(playerPickTimeout!==null){clearTimeout(playerPickTimeout);playerPickTimeout=null}}let selectedTeamCount=4;let roster=[],pickedRoster=-1,activePlayerId=null,playerSequence=0;let stealCycleUsed=new Set();let teams=[],turn=0,phase='setup',actor=0,steal=-1,selected=-1,attemptSteal=false,sound=true,ac=null,importTeam=0,token=0,previous=null;
+let playerPickKey=null;let playerSelectionMode='random';try{const saved=localStorage.getItem('bt_player_mode');if(['random','after','before'].includes(saved))playerSelectionMode=saved}catch{}let playerPickTimeout=null;function clearPlayerPickTimeout(){if(playerPickTimeout!==null){clearTimeout(playerPickTimeout);playerPickTimeout=null}}let selectedTeamCount=4;let roster=[],pickedRoster=-1,activePlayerId=null,playerSequence=0;let stealCycleUsed=new Set();let stealAttemptedTeams=new Set();let stealLimit=1;let teams=[],turn=0,phase='setup',actor=0,steal=-1,selected=-1,attemptSteal=false,sound=true,ac=null,importTeam=0,token=0,previous=null;
+try{stealLimit=localStorage.getItem('bt_steal_limit_v1')==='3'?3:1}catch{}
+$('steal-limit-setting').value=String(stealLimit);
+$('steal-limit-setting').addEventListener('change',()=>{stealLimit=Number($('steal-limit-setting').value)===3?3:1;try{localStorage.setItem('bt_steal_limit_v1',String(stealLimit))}catch{}});
 const headingDefaults={title:'THE BATTLE OF TEAMS',topic:'',school:'',grade:'',rebbi:''};
 let gameHeading={...headingDefaults};
 
@@ -411,7 +414,7 @@ function downloadGameReport(){
  }catch(err){gameNotice('Could not save the report: '+err.message)}
 }
 document.querySelector('.report-download').addEventListener('click',downloadGameReport);
-function reset(){if(savedGameQuestions){Q=structuredClone(savedGameQuestions);savedGameQuestions=null;}powerUpAt=null;stealCycleUsed.clear();$('team-reveal').classList.remove('show');gameReportEvents=[];gameStartedAt=null;gameEndedAt=null;gameEndReason=null;teams=['Lions','Leopards','Eagles','Stags'].slice(0,selectedTeamCount).map((name,i)=>({name,icon:defaultIcons[i],hp:200,correct:0,wrong:0,stealChances:0,stealCorrect:0,shieldUntil:-1,photo:(()=>{try{return localStorage.getItem('bt_castle_'+i)||defaults[i]}catch{return defaults[i]}})(),damage:0}));turn=0;phase='setup';actor=0;steal=-1;selected=-1;attemptSteal=false;token++;roster.forEach(p=>p.used=false);activePlayerId=null}
+function reset(){if(savedGameQuestions){Q=structuredClone(savedGameQuestions);savedGameQuestions=null;}powerUpAt=null;stealCycleUsed.clear();stealAttemptedTeams.clear();$('team-reveal').classList.remove('show');gameReportEvents=[];gameStartedAt=null;gameEndedAt=null;gameEndReason=null;teams=['Lions','Leopards','Eagles','Stags'].slice(0,selectedTeamCount).map((name,i)=>({name,icon:defaultIcons[i],hp:200,correct:0,wrong:0,stealChances:0,stealCorrect:0,shieldUntil:-1,photo:(()=>{try{return localStorage.getItem('bt_castle_'+i)||defaults[i]}catch{return defaults[i]}})(),damage:0}));turn=0;phase='setup';actor=0;steal=-1;selected=-1;attemptSteal=false;token++;roster.forEach(p=>p.used=false);activePlayerId=null}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 function audio(){if(!sound)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();return ac}catch{return null}}
 function tone(f,d=.15,delay=0,type='triangle',v=.12){let a=audio();if(!a)return;let o=a.createOscillator(),g=a.createGain(),t=a.currentTime+delay;o.type=type;o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(Math.max(40,f*.65),t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.01)}
@@ -505,7 +508,8 @@ if(phase==='choice'){cat.textContent='✓ CORRECT ANSWER';prompt.textContent=t.n
 if(phase==='battle'){cat.textContent='⚔ CANNON FIRE';prompt.textContent=t.name+' attacks the other castles!';sub.textContent='Watch the battlefield above';buttons.append(button('CONTINUE →',advance));buttons.lastChild.disabled=true;return}
 if(phase==='setup'||!Q.length){cat.textContent='READY TO SET UP';prompt.textContent='Import or add questions, then start the game.';sub.textContent='Open Questions Setup to build your question bank.';return;}
 let q=Q[turn];cat.textContent=q[0]+' · QUESTION '+(turn+1)+' OF '+Q.length+(phase==='steal'?' · STEAL':'');prompt.textContent=q[1];sub.textContent=q[2];q[3].forEach((o,i)=>{let b=document.createElement('button');b.className='option'+(phase==='feedback'?(i===selected?(i===q[4]?' good':' bad'):''):'');b.innerHTML='<strong>'+('ABCD'[i])+'</strong>'+esc(o);b.disabled=phase==='feedback'||((phase==='question'||phase==='steal')&&roster.some(p=>p.team===actor)&&activePlayerId===null);b.onclick=()=>answer(i);opts.appendChild(b)});
-if(phase==='feedback'){let correct=selected===q[4];msg.textContent=correct?'✓ CORRECT! '+q[5]:(attemptSteal?'✕ INCORRECT.':'✕ INCORRECT. Another team gets a chance to steal!');buttons.append(button(correct?'CHOOSE REWARD →':attemptSteal?'NEXT TEAM →':'GIVE STEAL CHANCE →',nextFeedback));buttons.append(button('↶ UNDO',undo));}
+if(phase==='feedback'){let correct=selected===q[4];let remaining=Math.min(stealLimit,teams.length-1)-stealAttemptedTeams.size;msg.textContent=correct?'✓ CORRECT! '+q[5]:remaining>0?'✕ INCORRECT. '+(attemptSteal?'Another team can steal!':'Steal opportunity!'):'✕ INCORRECT. Reveal the answer.';buttons.append(button(correct?'CHOOSE REWARD →':remaining>0?'NEXT STEAL →':'REVEAL ANSWER →',nextFeedback));buttons.append(button('↶ UNDO',undo));}
+if(phase==='answer-reveal'){const correctIndex=q[4];opts.querySelectorAll('.option').forEach((b,i)=>{if(i===correctIndex)b.classList.add('good')});msg.textContent='✓ CORRECT ANSWER: '+q[3][correctIndex]+(q[5]?' — '+q[5]:'');buttons.append(button('NEXT TEAM →',advance));}
  if(phase==='question'||phase==='steal'){openPlayerPickerIfNeeded();if(!questionRevealed){prompt.textContent=playerSelectionMode==='random'?'🎲 RANDOM PLAYER SELECTION':'👤 SELECT A PLAYER';sub.textContent='The question will appear after the player is selected.';opts.replaceChildren();}else if(roster.some(p=>p.team===actor)&&activePlayerId===null){opts.querySelectorAll('button').forEach(b=>b.disabled=true)}}
 }
 
@@ -527,7 +531,7 @@ $('team-reveal-begin').onclick=()=>{
  if(phase!=='team-reveal')return;
  $('team-reveal').classList.remove('show');phase='question';actor=0;render();
 };
-function start(){if(!Q.length){gameNotice('No questions loaded. Open Questions Setup and add or import questions before starting.');return;}stealCycleUsed.clear();teams.forEach((t,i)=>t.name=$('name'+i).value.trim()||t.name);if(roster.length&&roster.some(p=>p.team<0||p.team>=teams.length)){$('setup-players').open=true;gameNotice('Assign every player to a team before starting, or use Randomize Evenly.');return}savedGameQuestions=structuredClone(Q);powerUpAt=Math.ceil(Math.floor(Q.length*2/3)/teams.length)*teams.length;roster.forEach(p=>p.used=false);activePlayerId=null;playerPickKey=null;questionRevealed=false;gameReportEvents=[];gameStartedAt=new Date().toISOString();gameEndedAt=null;gameEndReason=null;$('setup').style.display='none';phase='team-reveal';actor=0;audio();renderTeamReveal();render()}
+function start(){stealAttemptedTeams.clear();if(!Q.length){gameNotice('No questions loaded. Open Questions Setup and add or import questions before starting.');return;}stealCycleUsed.clear();teams.forEach((t,i)=>t.name=$('name'+i).value.trim()||t.name);if(roster.length&&roster.some(p=>p.team<0||p.team>=teams.length)){$('setup-players').open=true;gameNotice('Assign every player to a team before starting, or use Randomize Evenly.');return}savedGameQuestions=structuredClone(Q);powerUpAt=Math.ceil(Math.floor(Q.length*2/3)/teams.length)*teams.length;roster.forEach(p=>p.used=false);activePlayerId=null;playerPickKey=null;questionRevealed=false;gameReportEvents=[];gameStartedAt=new Date().toISOString();gameEndedAt=null;gameEndReason=null;$('setup').style.display='none';phase='team-reveal';actor=0;audio();renderTeamReveal();render()}
 function answer(i){if(!['question','steal'].includes(phase)||!questionRevealed)return;
  auditGameFairness('answer');
  const teamPlayers=roster.filter(p=>p.team===actor);
@@ -535,8 +539,8 @@ function answer(i){if(!['question','steal'].includes(phase)||!questionRevealed)r
   const chosen=teamPlayers.find(p=>p.id===activePlayerId&&!p.used);
   if(!chosen){gameNotice('Select an available player from '+teams[actor].name+' before answering.');return}
  }
- previous={teams:JSON.parse(JSON.stringify(teams)),phase,turn,actor,steal,attemptSteal,rosterUsed:roster.map(p=>[p.id,p.used]),activePlayerId,reportLength:gameReportEvents.length,stealCycleUsed:[...stealCycleUsed]};if(teamPlayers.length){let player=teamPlayers.find(p=>p.id===activePlayerId);player.used=true;}selected=i;clearPlayerPickTimeout();$('player-pick-dialog').classList.remove('show');reportEvent('answer',{team:teams[actor].name,teamNumber:actor+1,player:roster.find(p=>p.id===activePlayerId)?.name||null,steal:!!attemptSteal,category:Q[turn][0],question:Q[turn][1],choices:Q[turn][3],selectedAnswerIndex:i,selectedAnswer:Q[turn][3][i],correctAnswerIndex:Q[turn][4],correctAnswer:Q[turn][3][Q[turn][4]],correct:i===Q[turn][4]});if(i===Q[turn][4]){teams[actor].correct++;if(attemptSteal)teams[actor].stealCorrect++}else teams[actor].wrong++;phase='feedback';playEffect(i===Q[turn][4]?'good':'bad');render()}
-function undo(){if(!previous)return;if(Number.isInteger(previous.reportLength))gameReportEvents.length=previous.reportLength;teams=previous.teams;if(previous.stealCycleUsed)stealCycleUsed=new Set(previous.stealCycleUsed);phase=previous.phase;turn=previous.turn;actor=previous.actor;steal=previous.steal;attemptSteal=previous.attemptSteal;if(previous.rosterUsed){let used=new Map(previous.rosterUsed);roster.forEach(p=>p.used=!!used.get(p.id));activePlayerId=previous.activePlayerId;playerPickKey=null;questionRevealed=false}selected=-1;render()}
+ previous={teams:JSON.parse(JSON.stringify(teams)),phase,turn,actor,steal,attemptSteal,stealAttemptedTeams:[...stealAttemptedTeams],rosterUsed:roster.map(p=>[p.id,p.used]),activePlayerId,reportLength:gameReportEvents.length,stealCycleUsed:[...stealCycleUsed]};if(teamPlayers.length){let player=teamPlayers.find(p=>p.id===activePlayerId);player.used=true;}selected=i;clearPlayerPickTimeout();$('player-pick-dialog').classList.remove('show');reportEvent('answer',{team:teams[actor].name,teamNumber:actor+1,player:roster.find(p=>p.id===activePlayerId)?.name||null,steal:!!attemptSteal,category:Q[turn][0],question:Q[turn][1],choices:Q[turn][3],selectedAnswerIndex:i,selectedAnswer:Q[turn][3][i],correctAnswerIndex:Q[turn][4],correctAnswer:Q[turn][3][Q[turn][4]],correct:i===Q[turn][4]});if(i===Q[turn][4]){teams[actor].correct++;if(attemptSteal)teams[actor].stealCorrect++}else teams[actor].wrong++;phase='feedback';playEffect(i===Q[turn][4]?'good':'bad');render()}
+function undo(){if(!previous)return;if(Number.isInteger(previous.reportLength))gameReportEvents.length=previous.reportLength;teams=previous.teams;if(previous.stealCycleUsed)stealCycleUsed=new Set(previous.stealCycleUsed);if(previous.stealAttemptedTeams)stealAttemptedTeams=new Set(previous.stealAttemptedTeams);phase=previous.phase;turn=previous.turn;actor=previous.actor;steal=previous.steal;attemptSteal=previous.attemptSteal;if(previous.rosterUsed){let used=new Map(previous.rosterUsed);roster.forEach(p=>p.used=!!used.get(p.id));activePlayerId=previous.activePlayerId;playerPickKey=null;questionRevealed=false}selected=-1;render()}
 function auditGameFairness(context){
  if(!teams.length||phase==='setup')return true;
  const problems=[];
@@ -549,22 +553,29 @@ function auditGameFairness(context){
  if(problems.length){console.warn('[Battle fairness audit] '+context+': '+problems.join('; '));return false;}
  return true;
 }
-function nextFeedback(){if(selected===Q[turn][4]){phase='choice';render();return}if(attemptSteal){advance();return}// Randomized steal rotation: every team must receive an opportunity before anyone repeats.
-let eligible=teams.map((_,i)=>i).filter(i=>i!==turn%teams.length);
-// A cycle resets ONLY after every team has had a steal opportunity.
-if(stealCycleUsed.size>=teams.length)stealCycleUsed.clear();
-let pool=eligible.filter(i=>!stealCycleUsed.has(i));
-if(!pool.length){
- // The sole remaining team is the current answering team. Preserve its place
- // in the rotation; skip this steal rather than repeat another team's chance.
- reportEvent('steal_deferred',{questionNumber:turn+1,reason:'remaining_team_is_answering'});
- advance();return;
-}
-steal=pool[Math.floor(Math.random()*pool.length)];
-stealCycleUsed.add(steal);
+function nextFeedback(){
+ if(selected===Q[turn][4]){phase='choice';render();return}
+ if(attemptSteal && stealAttemptedTeams.size>=Math.min(stealLimit,teams.length-1)){
+   phase='answer-reveal';reportEvent('answer_revealed',{question:Q[turn][1],correctAnswer:Q[turn][3][Q[turn][4]]});render();return;
+ }
+ // Each opponent may steal at most once per question. Across questions, keep
+ // the existing randomized fair-cycle policy whenever possible.
+ let eligible=teams.map((_,i)=>i).filter(i=>i!==turn%teams.length&&!stealAttemptedTeams.has(i));
+ if(!eligible.length){phase='answer-reveal';reportEvent('answer_revealed',{question:Q[turn][1],correctAnswer:Q[turn][3][Q[turn][4]]});render();return}
+ if(stealCycleUsed.size>=teams.length)stealCycleUsed.clear();
+ let pool=eligible.filter(i=>!stealCycleUsed.has(i));
+ if(!pool.length){
+   // A new fairness cycle can start when the only unused teams have already
+   // attempted this question; do not repeat a team on the same question.
+   stealCycleUsed.clear();pool=eligible;
+ }
+ steal=pool[Math.floor(Math.random()*pool.length)];
+ stealCycleUsed.add(steal);stealAttemptedTeams.add(steal);
  auditGameFairness('steal assignment');
-teams[steal].stealChances=(teams[steal].stealChances||0)+1;reportEvent('steal_opportunity',{team:teams[steal].name,teamNumber:steal+1});
-clearPlayerPickTimeout();actor=steal;activePlayerId=null;playerPickKey=null;questionRevealed=false;playerPickKey=null;attemptSteal=true;selected=-1;phase='steal';previous=null;render()}
+ teams[steal].stealChances=(teams[steal].stealChances||0)+1;
+ reportEvent('steal_opportunity',{team:teams[steal].name,teamNumber:steal+1,attempt:stealAttemptedTeams.size,maxAttempts:Math.min(stealLimit,teams.length-1)});
+ clearPlayerPickTimeout();actor=steal;activePlayerId=null;playerPickKey=null;questionRevealed=false;attemptSteal=true;selected=-1;phase='steal';previous=null;render();
+}
 function choose(kind){if(phase!=='choice')return;if(kind==='repair'&&teams[actor].hp>=200){gameNotice('This castle is already at full health. Choose Attack or Shield.');return;}reportEvent('reward',{team:teams[actor].name,teamNumber:actor+1,reward:kind,hpBefore:teams.map(t=>t.hp)});if(kind==='repair'){phase='repair-celebration';teams[actor].hp=Math.min(200,teams[actor].hp+(turn>=(powerUpAt??Math.floor(Q.length*2/3))?10:5));playEffect('repair');render();let el=$('castle'+actor);if(el){let icon=document.createElement('div');icon.className='status repair-indicator';icon.textContent='🏗️';el.querySelector('.picture').appendChild(icon);setTimeout(()=>icon.remove(),5000)}let repairToken=token;setTimeout(()=>{if(token===repairToken&&phase==='repair-celebration')safelyHandle(advance,'repair completion')},5100);return}if(kind==='shield'){
  teams[actor].shieldUntil=turn+2;
  // Keep the reward phase visible for exactly three seconds before advancing.
@@ -632,7 +643,7 @@ function skipCurrentQuestion(){
  clearPlayerPickTimeout();stopPlayerPickerTimer();
  const dialog=$('player-pick-dialog');if(dialog)dialog.classList.remove('show');
  Q.splice(turn,1);
- selected=-1;attemptSteal=false;steal=-1;
+ stealAttemptedTeams.clear();selected=-1;attemptSteal=false;steal=-1;
  // If a steal was in progress, return the question to the original team.
  if(phase==='steal'){actor=turn%teams.length;activePlayerId=null;playerPickKey=null;questionRevealed=false;}
  phase='question';
@@ -644,7 +655,7 @@ function skipCurrentQuestion(){
  render();
 }
 $('skip-question').addEventListener('click',skipCurrentQuestion);
-function advance(){auditGameFairness('before advance');clearPlayerPickTimeout();stopPlayerPickerTimer();activePlayerId=null;playerPickKey=null;questionRevealed=false;if(phase==='end')return;turn++;selected=-1;attemptSteal=false;steal=-1;teams.forEach(t=>{if(t.shieldUntil<turn)t.shieldUntil=-1});if(turn>=Q.length){phase='end';gameEndedAt=new Date().toISOString();gameEndReason='all_questions';showVictory()}else{phase='question';actor=turn%teams.length;auditGameFairness('team rotation');if(turn===(powerUpAt??Math.floor(Q.length*2/3))){$('power-change-dialog').classList.add('show');return}}render()}
+function advance(){auditGameFairness('before advance');clearPlayerPickTimeout();stopPlayerPickerTimer();activePlayerId=null;playerPickKey=null;questionRevealed=false;if(phase==='end')return;stealAttemptedTeams.clear();turn++;selected=-1;attemptSteal=false;steal=-1;teams.forEach(t=>{if(t.shieldUntil<turn)t.shieldUntil=-1});if(turn>=Q.length){phase='end';gameEndedAt=new Date().toISOString();gameEndReason='all_questions';showVictory()}else{phase='question';actor=turn%teams.length;auditGameFairness('team rotation');if(turn===(powerUpAt??Math.floor(Q.length*2/3))){$('power-change-dialog').classList.add('show');return}}render()}
 $('power-change-continue').onclick=()=>{$('power-change-dialog').classList.remove('show');if(phase==='question')render()};
 function finishGameImmediately(){clearPlayerPickTimeout();stopPlayerPickerTimer();$('player-pick-dialog').classList.remove('show');
  if(phase==='setup'||phase==='end')return;
