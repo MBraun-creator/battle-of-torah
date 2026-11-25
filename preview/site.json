@@ -1,0 +1,10 @@
+{
+  "purpose": "development-preview-only",
+  "project_id": "appgprj_6ae9dfe7cb9c8191b75bbb5c99f2b1ac",
+  "preview_url": "https://battle-of-torah-preview.johnlegooky.chatgpt.site",
+  "live_url": "https://mbraun-creator.github.io/battle-of-torah/",
+  "source_repository": "https://github.com/MBraun-creator/battle-of-torah.git",
+  "initial_source_branch": "dev/version-64",
+  "update_policy": "manual-preview-only",
+  "access": "owner-private"
+}
